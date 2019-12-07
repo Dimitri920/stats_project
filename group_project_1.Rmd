@@ -12,25 +12,30 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r}
 library(tidyverse)
 library(plotly)
+library(VIM)
 ```
-
 
 ```{r}
 #Import data set
-human_freedom <- read.csv("~/working/data_science_folders/statistical_inference_data_science_I/project_stats/project_group_stats/hfi_cc_2018.csv")
+human_freedom_index <- ("~/working/data_science_folders/statistical_inference_data_science_I/project_stats/project_group_stats/hfi_cc_2018.csv")
+
+#Have the variables read in as factors to make the interpretation easier to understand
+human_freedom <- fread(human_freedom_index)
+human_freedom[,1:4] <- lapply(human_freedom[,1:4], as.factor)
 View(human_freedom)
+names(human_freedom)
 ```
 
 ```{r}
 #Check to see which data is missing
 colSums(is.na(human_freedom))
-summary(human_freedom)
 ```
 
 ```{r}
 #Create personal freedom index
 personal_freedom <- human_freedom %>%
 select(year, ISO_code, countries, region, pf_score, pf_rank, hf_score, hf_rank) %>%  na.omit()
+names(personal_freedom)
 ```
 
 ```{r}
@@ -43,22 +48,31 @@ select(year, ISO_code, countries, region, pf_religion, hf_score, hf_rank) %>%  n
 #Create an index for the regions
 #Western Europe
 western_europe <- subset(human_freedom, region == "Western Europe") %>% na.omit()
+
 #Sub-Saharan Africa
 sub_saharan <- subset(human_freedom, region == "Sub-Saharan Africa") %>% na.omit()
+
 #South Asia
 south_asia <- subset(human_freedom, region == "South Asia") %>% na.omit()
+
 #Oceania
 oceania <- subset(human_freedom, region == "Oceania") %>% na.omit()
+
 #North America
 north_america <- subset(human_freedom, region == "North America") %>% na.omit()
+
 #Middle East & North Africa
 middle_east <- subset(human_freedom, region == "Middle East & North Africa") %>% na.omit()
+
 #Latin America & the Caribbean
 latin_american <- subset(human_freedom, region == "Latin America & the Caribbean") %>% na.omit()
+
 #Eastern Europe
 eastern_europe <- subset(human_freedom, region == "Eastern Europe") %>% na.omit()
+
 #East Asia
 east_asia <- subset(human_freedom, region == "East Asia") %>% na.omit()
+
 #Caucasus & Central Asia
 central_asia <- subset(human_freedom, region == "Caucasus & Central Asia") %>% na.omit()
 ```
@@ -84,4 +98,6 @@ low_freedom_2016 <- subset(personal_freedom, freedom_levels_2016 == "Low Freedom
 med_freedom_2016 <- subset(personal_freedom, freedom_levels_2016 == "Medium Freedom")
 high_freedom_2016 <- subset(personal_freedom, freedom_levels_2016 == "High Freedom")
 ```
+
+
 
