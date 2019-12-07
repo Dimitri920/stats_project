@@ -9,22 +9,79 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
+```{r}
+library(tidyverse)
+library(plotly)
 ```
 
-## Including Plots
 
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
+```{r}
+#Import data set
+human_freedom <- read.csv("~/working/data_science_folders/statistical_inference_data_science_I/project_stats/project_group_stats/hfi_cc_2018.csv")
+View(human_freedom)
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+```{r}
+#Check to see which data is missing
+colSums(is.na(human_freedom))
+summary(human_freedom)
+```
+
+```{r}
+#Create personal freedom index
+personal_freedom <- human_freedom %>%
+select(year, ISO_code, countries, region, pf_score, pf_rank, hf_score, hf_rank) %>%  na.omit()
+```
+
+```{r}
+#Create a religious freedom index
+religious_freedom <- human_freedom %>%
+select(year, ISO_code, countries, region, pf_religion, hf_score, hf_rank) %>%  na.omit()
+```
+
+```{r}
+#Create an index for the regions
+#Western Europe
+western_europe <- subset(human_freedom, region == "Western Europe") %>% na.omit()
+#Sub-Saharan Africa
+sub_saharan <- subset(human_freedom, region == "Sub-Saharan Africa") %>% na.omit()
+#South Asia
+south_asia <- subset(human_freedom, region == "South Asia") %>% na.omit()
+#Oceania
+oceania <- subset(human_freedom, region == "Oceania") %>% na.omit()
+#North America
+north_america <- subset(human_freedom, region == "North America") %>% na.omit()
+#Middle East & North Africa
+middle_east <- subset(human_freedom, region == "Middle East & North Africa") %>% na.omit()
+#Latin America & the Caribbean
+latin_american <- subset(human_freedom, region == "Latin America & the Caribbean") %>% na.omit()
+#Eastern Europe
+eastern_europe <- subset(human_freedom, region == "Eastern Europe") %>% na.omit()
+#East Asia
+east_asia <- subset(human_freedom, region == "East Asia") %>% na.omit()
+#Caucasus & Central Asia
+central_asia <- subset(human_freedom, region == "Caucasus & Central Asia") %>% na.omit()
+```
+
+```{r}
+#Create a categorical variable from personal freedom rank for low, medium, and high freedom levels, and have it for the years 2008 and 2016
+#For year 2008
+personal_freedom_2008 <- subset(personal_freedom, year = 2008)
+#For year 2016
+personal_freedom_2016 <- subset(personal_freedom, year = 2016)
+
+#Freedom levels for 2008
+freedom_levels_2008 <- cut(personal_freedom_2008$pf_rank, c(-1, 54, 108, 162))
+levels(freedom_levels_2008) <- c("High Freedom", "Medium Freedom", "Low Freedom")
+low_freedom_2008 <- subset(personal_freedom, freedom_levels_2008 == "Low Freedom")
+med_freedom_2008 <- subset(personal_freedom, freedom_levels_2008 == "Medium Freedom")
+high_freedom_2008 <- subset(personal_freedom, freedom_levels_2008 == "High Freedom")
+
+#Freedom levels for 2016
+freedom_levels_2016 <- cut(personal_freedom_2016$pf_rank, c(-1, 54, 108, 162))
+levels(freedom_levels_2016) <- c("High Freedom", "Medium Freedom", "Low Freedom")
+low_freedom_2016 <- subset(personal_freedom, freedom_levels_2016 == "Low Freedom")
+med_freedom_2016 <- subset(personal_freedom, freedom_levels_2016 == "Medium Freedom")
+high_freedom_2016 <- subset(personal_freedom, freedom_levels_2016 == "High Freedom")
+```
+
