@@ -12,7 +12,6 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r}
 library(tidyverse)
 library(plotly)
-library(VIM)
 ```
 
 ```{r}
@@ -99,5 +98,113 @@ med_freedom_2016 <- subset(personal_freedom, freedom_levels_2016 == "Medium Free
 high_freedom_2016 <- subset(personal_freedom, freedom_levels_2016 == "High Freedom")
 ```
 
+```{r}
+#Create a multiple linear regression line using our explanatory variables pf_rol_criminal, pf_ss_homicide, pf_movement_domestic, pf_religion_estop, pf_identity_sex against our response variable pf_score
+
+#Model for pf_rol_criminal
+criminal_model <- with(human_freedom,pf_score ~ pf_rol_criminal)
+lm_criminal <- lm(formula = criminal_model, data = human_freedom)
+summary(lm_criminal)
+deviance(lm_criminal)
+
+#Plot the data
+plot(criminal_model)
+abline(lm_criminal)
+
+#Create a histogram
+hist(lm_criminal$residuals)
+par(mfrow=c(2,2))
+plot(lm_criminal)
+par(mfrow=c(1,1))
+```
+
+```{r}
+#Model for pf_ss_homicide
+homocide_model <- with(human_freedom,pf_score ~ pf_ss_homicide)
+lm_homicide <- lm(formula = homocide_model, data = human_freedom)
+summary(lm_homicide)
+deviance(lm_homicide)
+
+#Plot the data
+plot(homocide_model)
+abline(lm_homicide)
+
+#Create a histogram
+hist(lm_homicide$residuals)
+par(mfrow=c(2,2))
+plot(lm_homicide)
+par(mfrow=c(1,1))
+```
+
+```{r}
+#Model for pf_movement_domestic
+movement_model <- with(human_freedom,pf_score ~ pf_movement_domestic)
+lm_movement <- lm(formula = movement_model, data = human_freedom)
+summary(lm_movement)
+deviance(lm_movement)
+
+#Plot the data
+plot(movement_model)
+abline(lm_movement)
+
+#Create a histogram
+hist(lm_movement$residuals)
+par(mfrow=c(2,2))
+plot(lm_movement)
+par(mfrow=c(1,1))
+```
+
+```{r}
+#Model for pf_religion_estop
+religion_model <- with(human_freedom,pf_score ~ pf_religion_estop)
+lm_religion <- lm(formula = religion_model, data = human_freedom)
+summary(lm_religion)
+deviance(lm_religion)
+
+#Plot the data
+plot(religion_model)
+abline(lm_religion)
+
+#Create a histogram
+hist(lm_religion$residuals)
+par(mfrow=c(2,2))
+plot(lm_religion)
+par(mfrow=c(1,1))
+```
+
+```{r}
+#Model for pf_identity_sex
+identity_model <- with(human_freedom,pf_score ~ pf_identity_sex)
+lm_identity <- lm(formula = identity_model, data = human_freedom)
+summary(lm_identity)
+deviance(lm_identity)
+
+#Plot the data
+plot(identity_model)
+abline(lm_identity)
+
+#Create a histogram
+hist(lm_identity$residuals)
+par(mfrow=c(2,2))
+plot(lm_identity)
+par(mfrow=c(1,1))
+```
+
+```{r}
+#Now to create a multiple linear model for all the variables
+multiple_model <- with(human_freedom,pf_score ~ pf_rol_criminal + pf_ss_homicide + pf_movement_domestic + pf_religion_estop + pf_identity_sex)
+lm_multiple <- lm(formula = multiple_model, data = human_freedom)
+summary(lm_multiple)
+deviance(lm_multiple)
+
+#Plot the data
+plot(multiple_model)
+
+#Create a histogram
+hist(lm_multiple$residuals)
+par(mfrow=c(2,2))
+plot(lm_multiple)
+par(mfrow=c(1,1))
+```
 
 
