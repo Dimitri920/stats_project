@@ -63,6 +63,7 @@ correlation_table$P
 
 ```{r}
 #Create a function to format the correlation matrix
+
 #cormat: matrix of the correlation coefficients
 #pmat: matrix of the correlation p-values
 flattenCorrMatrix <- function(cormat, pmat) {
@@ -73,6 +74,7 @@ flattenCorrMatrix <- function(cormat, pmat) {
     cor = (cormat)[ut],
     p = pmat[ut]
     )
+  
 }
 ```
 
@@ -133,6 +135,7 @@ religious_freedom_rank %>%
 
 ```{r}
 #Create an index for the regions
+
 #Western Europe
 western_europe <- subset(human_freedom, region == "Western Europe") %>% na.omit()
 
@@ -166,6 +169,7 @@ central_asia <- subset(human_freedom, region == "Caucasus & Central Asia") %>% n
 
 ```{r}
 #Create variables for religious freedom in Latin America & the Caribbean and for Middle East & North Africa
+
 #First Latin America & the Caribbean
 religious_latin_freedom <- subset(religious_freedom, region == "Latin America & the Caribbean")
 
@@ -175,8 +179,10 @@ religious_middle_east_freedom <- subset(religious_freedom, region == "Middle Eas
 
 ```{r}
 #Create a categorical variable from personal freedom rank for low, medium, and high freedom levels, and have it for the years 2008 and 2016
+
 #For year 2008
 personal_freedom_2008 <- subset(personal_freedom, year = 2008)
+
 #For year 2016
 personal_freedom_2016 <- subset(personal_freedom, year = 2016)
 
@@ -197,6 +203,7 @@ high_freedom_2016 <- subset(personal_freedom, freedom_levels_2016 == "High Freed
 
 ```{r}
 #Create a multiple linear regression line using our explanatory variables pf_rol_criminal, pf_ss_homicide, pf_movement_domestic, pf_religion_estop, pf_identity_sex against our response variable pf_score
+
 #Model for pf_rol_criminal
 criminal_model <- with(human_freedom,pf_score ~ pf_rol_criminal)
 lm_criminal <- lm(formula = criminal_model, data = human_freedom)
