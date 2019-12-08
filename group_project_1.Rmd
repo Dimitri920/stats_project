@@ -65,6 +65,7 @@ correlation_table$P
 #Create a function to format the correlation matrix
 
 #cormat: matrix of the correlation coefficients
+
 #pmat: matrix of the correlation p-values
 flattenCorrMatrix <- function(cormat, pmat) {
   ut <- upper.tri(cormat)
@@ -73,6 +74,7 @@ flattenCorrMatrix <- function(cormat, pmat) {
     column = rownames(cormat)[col(cormat)[ut]],
     cor = (cormat)[ut],
     p = pmat[ut]
+    
     )
   
 }
@@ -415,5 +417,3 @@ matrix_correlation_multiple %>%
 #Display a chart of the correlation matrix
 chart.Correlation(matrix_correlation_multiple, histogram = TRUE, pch = 19)
 ```
-
-
