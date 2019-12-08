@@ -11,9 +11,13 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r}
 library(tidyverse)
-library(plotly)
+library(pastecs)
 library(ggplot2)
-library(GGally)
+library(corrplot)
+library(pastecs)
+library(Hmisc)
+library(ggpubr)
+library(PerformanceAnalytics)
 ```
 
 ```{r}
@@ -25,18 +29,73 @@ human_freedom <- fread(human_freedom_index)
 human_freedom[,1:4] <- lapply(human_freedom[,1:4], as.factor)
 View(human_freedom)
 names(human_freedom)
+dim(human_freedom)
 ```
 
 ```{r}
-#Check to see which data is missing
-colSums(is.na(human_freedom))
+#Get rid of variables that you can't get descriptive statistics
+human_freedom_stats <- human_freedom %>%
+  select(-year, -ISO_code, -countries, -region)
+
+#Get descriptive statistics of the human freedom index
+summary(human_freedom_stats)
+sapply(human_freedom_stats, class)
+```
+
+```{r}
+#Create a table of descritive statistics of the human freedom index
+options(scipen = 100)
+options(digits = 2)
+stat.desc(human_freedom_stats)
+```
+
+```{r}
+#Create a correlation table of the human freedom index
+correlation_table <- rcorr(as.matrix(human_freedom_stats))
+correlation_table
+
+#To see the correlation coefficients
+correlation_table$r
+
+#To see the p-values
+correlation_table$P
+```
+
+```{r}
+#Create a function to format the correlation matrix
+#cormat: matrix of the correlation coefficients
+#pmat: matrix of the correlation p-values
+flattenCorrMatrix <- function(cormat, pmat) {
+  ut <- upper.tri(cormat)
+  data.frame(
+    row = rownames(cormat)[row(cormat)[ut]],
+    column = rownames(cormat)[col(cormat)[ut]],
+    cor = (cormat)[ut],
+    p = pmat[ut]
+    )
+}
+```
+
+```{r}
+#Use the function to get a correlation table of the human freedom index
+flattenCorrMatrix(correlation_table$r, correlation_table$P)
 ```
 
 ```{r}
 #Create personal freedom index
-personal_freedom <- human_freedom %>%
-select(year, ISO_code, countries, region, pf_score, pf_rank, hf_score, hf_rank) %>%  na.omit()
-names(personal_freedom)
+personal_freedom_score <- human_freedom %>%
+select(year, ISO_code, countries, region, pf_score, pf_rank, hf_score, hf_rank) %>% na.omit()
+names(personal_freedom_score)
+```
+
+```{r}
+#Create matrix table for personal freedom index
+personal_freedom_score %>%
+  ggcorr(label = T, 
+       label_alpha = 0.5,
+       low = "#3B9AB2",
+       high = "#F21A00",
+       name = "Legend")
 ```
 
 ```{r}
@@ -51,6 +110,22 @@ matrix_correlation_religion_personal <- human_freedom %>% select(pf_religion, pf
 matrix_correlation_religion_personal %>% 
   ggcorr(label = T, 
        label_alpha = 0.5,
+       low = "#3B9AB2",
+       high = "#F21A00",
+       name = "Legend")
+```
+
+```{r}
+#Create another index with all the religion variables
+religious_freedom_rank <- human_freedom %>%
+select(year, ISO_code, countries, region, pf_religion_estop_establish, pf_religion_estop_operate, pf_religion_estop, pf_religion_harassment, pf_religion_restrictions, pf_religion, hf_score, hf_rank) %>%  na.omit()
+```
+
+```{r}
+#Now create a correlation matrix for all religious variables
+religious_freedom_rank %>% 
+  ggcorr(label = T, 
+       label_alpha = 0.5, angle = 30,
        low = "#3B9AB2",
        high = "#F21A00",
        name = "Legend")
@@ -90,6 +165,15 @@ central_asia <- subset(human_freedom, region == "Caucasus & Central Asia") %>% n
 ```
 
 ```{r}
+#Create variables for religious freedom in Latin America & the Caribbean and for Middle East & North Africa
+#First Latin America & the Caribbean
+religious_latin_freedom <- subset(religious_freedom, region == "Latin America & the Caribbean")
+
+#Second the Middle East & North Africa
+religious_middle_east_freedom <- subset(religious_freedom, region == "Middle East & North Africa")
+```
+
+```{r}
 #Create a categorical variable from personal freedom rank for low, medium, and high freedom levels, and have it for the years 2008 and 2016
 #For year 2008
 personal_freedom_2008 <- subset(personal_freedom, year = 2008)
@@ -113,22 +197,38 @@ high_freedom_2016 <- subset(personal_freedom, freedom_levels_2016 == "High Freed
 
 ```{r}
 #Create a multiple linear regression line using our explanatory variables pf_rol_criminal, pf_ss_homicide, pf_movement_domestic, pf_religion_estop, pf_identity_sex against our response variable pf_score
-
 #Model for pf_rol_criminal
 criminal_model <- with(human_freedom,pf_score ~ pf_rol_criminal)
 lm_criminal <- lm(formula = criminal_model, data = human_freedom)
 summary(lm_criminal)
 deviance(lm_criminal)
+```
 
-#Plot the data
+```{r}
+#Pearson correlation test for pf_rol_criminal
+cor.test(human_freedom$pf_score, human_freedom$pf_rol_criminal, method = "pearson")
+```
+
+```{r}
+#Plot the data for pf_rol_criminal
 plot(criminal_model)
 abline(lm_criminal)
+```
 
-#Create a histogram
+```{r}
+#Create a histogram for pf_rol_criminal
 hist(lm_criminal$residuals)
 par(mfrow=c(2,2))
 plot(lm_criminal)
 par(mfrow=c(1,1))
+```
+
+```{r}
+#Create a scatterplot for pf_rol_criminal
+ggscatter(human_freedom, x = "pf_rol_criminal", y = "pf_score", 
+          add = "reg.line", conf.int = TRUE, 
+          cor.coef = TRUE, cor.method = "pearson",
+          xlab = "Criminal Justice (score)", ylab = "Personal Freedom (score)")
 ```
 
 ```{r}
@@ -137,16 +237,33 @@ homocide_model <- with(human_freedom,pf_score ~ pf_ss_homicide)
 lm_homicide <- lm(formula = homocide_model, data = human_freedom)
 summary(lm_homicide)
 deviance(lm_homicide)
+```
 
-#Plot the data
+```{r}
+#Pearson correlation test for pf_ss_homicide
+cor.test(human_freedom$pf_score, human_freedom$pf_ss_homicide, method = "pearson")
+```
+
+```{r}
+#Plot the data for pf_ss_homicide
 plot(homocide_model)
 abline(lm_homicide)
+```
 
-#Create a histogram
+```{r}
+#Create a histogram for pf_ss_homicide
 hist(lm_homicide$residuals)
 par(mfrow=c(2,2))
 plot(lm_homicide)
 par(mfrow=c(1,1))
+```
+
+```{r}
+#Create a scatterplot for pf_ss_homicide
+ggscatter(human_freedom, x = "pf_ss_homicide", y = "pf_score", 
+          add = "reg.line", conf.int = TRUE, 
+          cor.coef = TRUE, cor.method = "pearson",
+          xlab = "Homicide (score)", ylab = "Personal Freedom (score)")
 ```
 
 ```{r}
@@ -155,16 +272,33 @@ movement_model <- with(human_freedom,pf_score ~ pf_movement_domestic)
 lm_movement <- lm(formula = movement_model, data = human_freedom)
 summary(lm_movement)
 deviance(lm_movement)
+```
 
-#Plot the data
+```{r}
+#Pearson correlation test for pf_movement_domestic
+cor.test(human_freedom$pf_score, human_freedom$pf_movement_domestic, method = "pearson")
+```
+
+```{r}
+#Plot the data for pf_movement_domestic
 plot(movement_model)
 abline(lm_movement)
+```
 
-#Create a histogram
+```{r}
+#Create a histogram for pf_movement_domestic
 hist(lm_movement$residuals)
 par(mfrow=c(2,2))
 plot(lm_movement)
 par(mfrow=c(1,1))
+```
+
+```{r}
+#Create a scatterplot for pf_movement_domestic
+ggscatter(human_freedom, x = "pf_movement_domestic", y = "pf_score", 
+          add = "reg.line", conf.int = TRUE, 
+          cor.coef = TRUE, cor.method = "pearson",
+          xlab = "Freedom of Domestic Movement (score)", ylab = "Personal Freedom (score)")
 ```
 
 ```{r}
@@ -173,16 +307,34 @@ religion_model <- with(human_freedom,pf_score ~ pf_religion_estop_establish)
 lm_religion <- lm(formula = religion_model, data = human_freedom)
 summary(lm_religion)
 deviance(lm_religion)
+```
 
-#Plot the data
+```{r}
+#Pearson correlation test for pf_religion_estop_establish
+cor.test(human_freedom$pf_score, human_freedom$pf_religion_estop_establish, method = "pearson")
+```
+
+```{r}
+#Plot the data for pf_religion_estop_establish
 plot(religion_model)
 abline(lm_religion)
+```
 
-#Create a histogram
+```{r}
+#Create a histogram for pf_religion_estop_establish
 hist(lm_religion$residuals)
 par(mfrow=c(2,2))
 plot(lm_religion)
 par(mfrow=c(1,1))
+```
+
+```{r}
+#Create a scatterplot for pf_religion_estop_establish
+ggscatter(human_freedom, x = "pf_religion_estop_establish", y = "pf_score", 
+          add = "reg.line", conf.int = TRUE, 
+          cor.coef = TRUE, cor.method = "pearson",
+          xlab = "Freedom to Establish Religious Organizations
+ (score)", ylab = "Personal Freedom (score)")
 ```
 
 ```{r}
@@ -191,16 +343,34 @@ identity_model <- with(human_freedom,pf_score ~ pf_identity_sex)
 lm_identity <- lm(formula = identity_model, data = human_freedom)
 summary(lm_identity)
 deviance(lm_identity)
+```
 
-#Plot the data
+```{r}
+#Pearson correlation test for pf_identity_sex
+cor.test(human_freedom$pf_score, human_freedom$pf_identity_sex, method = "pearson")
+```
+
+```{r}
+#Plot the data for pf_identity_sex
 plot(identity_model)
 abline(lm_identity)
+```
 
-#Create a histogram
+```{r}
+#Create a histogram for pf_identity_sex
 hist(lm_identity$residuals)
 par(mfrow=c(2,2))
 plot(lm_identity)
 par(mfrow=c(1,1))
+```
+
+```{r}
+#Create a scatterplot for pf_identity_sex
+ggscatter(human_freedom, x = "pf_identity_sex", y = "pf_score", 
+          add = "reg.line", conf.int = TRUE, 
+          cor.coef = TRUE, cor.method = "pearson",
+          xlab = "Same-sex Relationships
+ (score)", ylab = "Personal Freedom (score)")
 ```
 
 ```{r}
@@ -225,6 +395,7 @@ par(mfrow=c(1,1))
 matrix_correlation_multiple <- human_freedom %>%
 select(pf_score, pf_rol_criminal, pf_ss_homicide, pf_movement_domestic, pf_religion_estop_establish, pf_identity_sex)
 
+#Create matrix table
 matrix_correlation_multiple %>%
   ggcorr(label = T, angle = 30, 
        label_alpha = 0.5,
@@ -232,3 +403,10 @@ matrix_correlation_multiple %>%
        high = "#F21A00",
        name = "Legend")
 ```
+
+```{r}
+#Display a chart of the correlation matrix
+chart.Correlation(matrix_correlation_multiple, histogram = TRUE, pch = 19)
+```
+
+
