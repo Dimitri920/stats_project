@@ -12,6 +12,8 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r}
 library(tidyverse)
 library(plotly)
+library(ggplot2)
+library(GGally)
 ```
 
 ```{r}
@@ -41,6 +43,17 @@ names(personal_freedom)
 #Create a religious freedom index
 religious_freedom <- human_freedom %>%
 select(year, ISO_code, countries, region, pf_religion, hf_score, hf_rank) %>%  na.omit()
+```
+
+```{r}
+#Now create a correlation matrix between these indexes
+matrix_correlation_religion_personal <- human_freedom %>% select(pf_religion, pf_score, pf_rank, hf_score, hf_rank) 
+matrix_correlation_religion_personal %>% 
+  ggcorr(label = T, 
+       label_alpha = 0.5,
+       low = "#3B9AB2",
+       high = "#F21A00",
+       name = "Legend")
 ```
 
 ```{r}
@@ -155,8 +168,8 @@ par(mfrow=c(1,1))
 ```
 
 ```{r}
-#Model for pf_religion_estop
-religion_model <- with(human_freedom,pf_score ~ pf_religion_estop)
+#Model for pf_religion_estop_establish
+religion_model <- with(human_freedom,pf_score ~ pf_religion_estop_establish)
 lm_religion <- lm(formula = religion_model, data = human_freedom)
 summary(lm_religion)
 deviance(lm_religion)
@@ -207,4 +220,15 @@ plot(lm_multiple)
 par(mfrow=c(1,1))
 ```
 
+```{r}
+#Create a correlation matrix to see which variables are the most related to each other
+matrix_correlation_multiple <- human_freedom %>%
+select(pf_score, pf_rol_criminal, pf_ss_homicide, pf_movement_domestic, pf_religion_estop_establish, pf_identity_sex)
 
+matrix_correlation_multiple %>%
+  ggcorr(label = T, angle = 30, 
+       label_alpha = 0.5,
+       low = "#3B9AB2",
+       high = "#F21A00",
+       name = "Legend")
+```
