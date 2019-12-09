@@ -1,0 +1,110 @@
+---
+title: "STATS_groupproject"
+author: "Jeeda AbuKhader"
+date: "12/8/2019"
+output: html_document
+---
+```{r}
+library(tidyverse)
+library(pastecs)
+library(ggplot2)
+library(corrplot)
+library(pastecs)
+library(Hmisc)
+library(ggpubr)
+library(PerformanceAnalytics)
+```
+
+```{r}
+#Import data set
+human_freedom_index <- ("~/Desktop/hfi_cc_2018.csv")
+human_freedom <- fread(human_freedom_index)
+human_freedom[,1:4] <- lapply(human_freedom[,1:4], as.factor)
+View(human_freedom)
+names(human_freedom)
+dim(human_freedom)
+```
+
+
+```{r}
+# subset for 2016
+
+freedom_2016 <- subset(human_freedom, year == 2016 )
+View(freedom_2016)
+
+```
+
+```{r}
+#Create a categorical variable from personal freedom rank for low, medium, and high freedom levels
+#Freedom levels for 2016
+freedom_levels_2016 <- cut(freedom_2016$pf_score, c(0, 3.5, 7.5, 10))
+levels(freedom_levels_2016) <- c("Low Freedom", "Medium Freedom", "High Freedom")
+low_freedom_2016 <- subset(freedom_2016, freedom_levels_2016 == "Low Freedom")
+med_freedom_2016 <- subset(freedom_2016, freedom_levels_2016 == "Medium Freedom")
+high_freedom_2016 <- subset(freedom_2016, freedom_levels_2016 == "High Freedom")
+
+
+```
+
+
+```{r}
+# number 3
+#Hypothesis Test
+
+x <- nrow(high_freedom_2016)
+n <- sum(nrow(low_freedom_2016),nrow(med_freedom_2016), nrow(high_freedom_2016))
+prop.test(x, n, p = 0.5, correct = FALSE)
+
+
+```
+
+```{r}
+# number 2
+
+# checking assumption of normality
+histogram(freedom_2016$pf_score)
+boxplot(freedom_2016$pf_score)
+
+# checking wich countries are outliers
+freedom_2016 %>%
+  select(countries, pf_score) %>%
+  filter(pf_score < 3)
+
+# removing outliers
+new_freedom_2016 <- freedom_2016[-which(freedom_2016$pf_score < 3),]
+
+# running the t-test
+t.test(new_freedom_2016$pf_score, mu=7.5)
+Cohen <- abs(mean(new_freedom_2016$pf_score)-7.5)/sd(new_freedom_2016$pf_score)
+```
+
+```{r}
+# number 4
+freedom_MENA <- subset(freedom_2016, freedom_2016$region == "Middle East & North Africa")
+
+freedom_latin_america <- subset(freedom_2016, freedom_2016$region == "Latin America & the Caribbean")
+
+df <- freedom_2016 %>%
+  filter(region == "Middle East & North Africa" | region == "Latin America & the Caribbean")
+
+# checking for assumptions
+hist(freedom_MENA$pf_religion)
+hist(freedom_latin_america$pf_religion)
+
+boxplot(freedom_latin_america$pf_religion, main = "Latin America & Caribbean")
+boxplot(freedom_MENA$pf_religion, main = "MENA")
+
+# two-sample t-test
+t.test(pf_religion ~ region, data=df)
+
+# Cohen's d
+mean1 <- mean(freedom_latin_america$pf_religion, na.rm = T)
+mean2 <- mean(freedom_MENA$pf_religion, na.rm = T)
+sd1 <- sd(freedom_latin_america$pf_religion)
+sd2 <- sd(freedom_MENA$pf_religion, na.rm = T)
+c <- abs(mean1-mean2)/sqrt((sd1^2+sd2^2)/2)
+c                                                          
+                                                                                          
+```
+
+
